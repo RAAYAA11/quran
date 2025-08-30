@@ -155,4 +155,54 @@
       if (currentIndex > 0){ currentIndex--; loadCurrent(true); renderList(); }
     });
     nextBtn.addEventListener('click', () => {
-      if
+      if (currentIndex < ITEMS.length - 1){ currentIndex++; loadCurrent(true); renderList(); }
+    });
+    replayBtn.addEventListener('click', () => {
+      if (YTPlayer){ YTPlayer.seekTo(0); YTPlayer.playVideo(); }
+    });
+
+    // بحث
+    searchEl.addEventListener('input', () => {
+      const q = searchEl.value.trim().toLowerCase();
+      filtered = q ? ITEMS.filter(it => (it.title||'').toLowerCase().includes(q)) : [...ITEMS];
+      renderList();
+    });
+
+    // API جاهز
+    window.onYouTubeIframeAPIReady = function(){
+      YTPlayer = new YT.Player('player', {
+        height: '390', width: '640',
+        videoId: ITEMS[currentIndex].id,
+        playerVars: { rel: 0, modestbranding: 1 },
+        events: {
+          'onReady': () => loadCurrent(false),
+          'onStateChange': onPlayerStateChange
+        }
+      });
+    }
+
+    function onPlayerStateChange(e){
+      // انتهى المقطع
+      if (e.data === YT.PlayerState.ENDED){
+        if (repeatToggle.checked){
+          YTPlayer.seekTo(0);
+          YTPlayer.playVideo();
+          return;
+        }
+        if (autonextToggle.checked && currentIndex < ITEMS.length - 1){
+          currentIndex++;
+          loadCurrent(true);
+          renderList();
+        }
+      }
+    }
+
+    // أدوات
+    function escapeHtml(s=''){return s.replace(/[&<>"']/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]))}
+
+    // تشغيل أولي
+    renderList();
+    loadCurrent(false);
+  </script>
+</body>
+</html>
